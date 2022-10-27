@@ -36,7 +36,7 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      * In order to save the people followed by a user organized in groups, adopt
      * a generic-type Map:  think of what type of keys and values would best suit the requirements
      */
-
+    private final Map<String, Set<U>> socialNet = new HashMap<>(); 
     /*
      * [CONSTRUCTORS]
      *
@@ -62,13 +62,15 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      *            application
      */
     public SocialNetworkUserImpl(final String name, final String surname, final String user, final int userAge) {
-        super(null, null, null, 0);
+        super(name, surname, user, userAge);
     }
 
     /*
      * 2) Define a further constructor where the age defaults to -1
      */
-
+    public SocialNetworkUserImpl(final String name, final String surname, final String user) {
+        this(name, surname, user, -1);
+    }
     /*
      * [METHODS]
      *
@@ -76,7 +78,12 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      */
     @Override
     public boolean addFollowedUser(final String circle, final U user) {
-        return false;
+        Set<U> friends = this.socialNet.get(circle);
+        if(friends == null) {
+            friends = new HashSet<>();
+            this.socialNet.put(circle, friends);
+        }
+        return friends.add(user);
     }
 
     /**
@@ -86,11 +93,18 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      */
     @Override
     public Collection<U> getFollowedUsersInGroup(final String groupName) {
-        return null;
+        if(this.socialNet.get(groupName) != null) {
+            return new ArrayList<>(this.socialNet.get(groupName));
+        }
+        return Collections.emptyList();
     }
 
     @Override
     public List<U> getFollowedUsers() {
-        return null;
+        final Set<U> followedUsr = new HashSet<>();
+        for (final var users : this.socialNet.values()) {
+            followedUsr.addAll(users);
+        }
+        return new ArrayList<>(followedUsr);
     }
 }
